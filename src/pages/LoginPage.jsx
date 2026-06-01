@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Header from '../components/Header/Header';
 import PrimaryButton from '../components/PrimaryButton/PrimaryButton';
 import SocialLoginButton from '../components/SocialLoginButton/SocialLoginButton';
 import './LoginPage.css';
@@ -16,6 +17,7 @@ export default function LoginPage() {
 
   return (
     <div className="page login-page">
+      <Header />
       <div className="login-logo">
         <div className="login-logo-icon">🔵</div>
         <h1 className="login-logo-text">QueueGo</h1>
