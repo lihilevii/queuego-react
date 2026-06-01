@@ -1,0 +1,15 @@
+.favorites-content {
+  padding: var(--space-5) var(--space-4);
+}
+
+.favorites-count {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.favorites-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
