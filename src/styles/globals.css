@@ -70,6 +70,12 @@ a {
   text-decoration: none;
 }
 
+/* RTL support */
+body {
+  direction: rtl;
+  text-align: right;
+}
+
 button {
   font-family: var(--font-body);
   cursor: pointer;
@@ -96,4 +102,13 @@ img {
 
 .page-bottom-spacer {
   height: calc(var(--bottom-nav-height) + var(--space-4));
+}
+
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: var(--text-body);
+  color: var(--color-text-muted);
 }

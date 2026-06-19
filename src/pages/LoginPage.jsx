@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import Header from '../components/Header/Header';
 import PrimaryButton from '../components/PrimaryButton/PrimaryButton';
 import SocialLoginButton from '../components/SocialLoginButton/SocialLoginButton';
@@ -8,11 +8,39 @@ import './LoginPage.css';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
-  function handleLogin(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    navigate('/');
+    setError('');
+    setSuccessMsg('');
+    setLoading(true);
+
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        setSuccessMsg('נשלח אליך מייל אישור - בדוק את תיבת הדואר שלך');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) setError(error.message);
   }
 
   return (
@@ -21,50 +49,57 @@ export default function LoginPage() {
       <div className="login-logo">
         <div className="login-logo-icon">🔵</div>
         <h1 className="login-logo-text">QueueGo</h1>
-        <p className="login-logo-sub">Skip the wait, not the place</p>
+        <p className="login-logo-sub">דלג על התור, לא על המקום</p>
       </div>
 
-      <form className="login-form" onSubmit={handleLogin}>
+      {error && <div className="login-error">{error}</div>}
+      {successMsg && <div className="login-success">{successMsg}</div>}
+
+      <form className="login-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label">Email</label>
+          <label className="form-label">אימייל</label>
           <input
             type="email"
             className="form-input"
             placeholder="you@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Password</label>
+          <label className="form-label">סיסמה</label>
           <input
             type="password"
             className="form-input"
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
 
-        <div className="login-forgot">
-          <Link to="#" className="login-link">Forgot password?</Link>
-        </div>
-
-        <PrimaryButton type="submit">Log In</PrimaryButton>
+        <PrimaryButton type="submit" disabled={loading}>
+          {loading ? 'רגע...' : isSignUp ? 'הרשמה' : 'כניסה'}
+        </PrimaryButton>
       </form>
 
-      <div className="login-divider">
-        <span>or</span>
-      </div>
+      <div className="login-divider"><span>או</span></div>
 
       <div className="login-social">
-        <SocialLoginButton provider="Google" onClick={() => navigate('/')} />
+        <SocialLoginButton provider="Google" onClick={handleGoogleLogin} />
       </div>
 
       <p className="login-signup">
-        Don't have an account?{' '}
-        <Link to="#" className="login-link">Sign up</Link>
+        {isSignUp ? 'כבר יש לך חשבון? ' : 'אין לך חשבון? '}
+        <button
+          type="button"
+          className="login-link login-toggle"
+          onClick={() => { setIsSignUp(!isSignUp); setError(''); setSuccessMsg(''); }}
+        >
+          {isSignUp ? 'כניסה' : 'הרשמה'}
+        </button>
       </p>
     </div>
   );

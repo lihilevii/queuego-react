@@ -1,66 +1,146 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 import Header from '../components/Header/Header';
 import SearchBar from '../components/SearchBar/SearchBar';
 import QueueCard from '../components/QueueCard/QueueCard';
 import PlaceCard from '../components/PlaceCard/PlaceCard';
 import BottomNav from '../components/BottomNav/BottomNav';
+import { useAuth } from '../context/AuthContext';
 import './HomePage.css';
 
-const categories = ['All', 'Government', 'Health', 'Post Office', 'DMV', 'Banks'];
+const categories = ['הכל', 'ממשלתי', 'בריאות', 'דואר', 'רישוי', 'בנקים'];
 
-const activeQueues = [
-  { id: 1, place: 'City Hall',       category: 'Government', waitTime: 12, level: 'low'    },
-  { id: 2, place: 'Health Clinic',   category: 'Health',     waitTime: 35, level: 'high'   },
-  { id: 3, place: 'Post Office',     category: 'Post Office',waitTime: 20, level: 'medium' },
-  { id: 4, place: 'DMV Branch',      category: 'DMV',        waitTime: 8,  level: 'low'    },
-];
+const categoryMap = {
+  'הכל': 'All',
+  'ממשלתי': 'Government',
+  'בריאות': 'Health',
+  'דואר': 'Post Office',
+  'רישוי': 'DMV',
+  'בנקים': 'Banks',
+};
 
-const nearbyPlaces = [
-  { id: 1, name: 'City Hall',       category: 'Government', rating: '4.2', emoji: '🏛️' },
-  { id: 2, name: 'Health Clinic',   category: 'Health',     rating: '4.5', emoji: '🏥' },
-  { id: 3, name: 'Post Office',     category: 'Post Office',rating: '3.8', emoji: '📮' },
-  { id: 4, name: 'DMV Branch',      category: 'DMV',        rating: '3.5', emoji: '🚗' },
-  { id: 5, name: 'Public Library',  category: 'Education',  rating: '4.7', emoji: '📚' },
-];
+const levelToWait = { low: 10, medium: 25, high: 45 };
+
+function getLatestReportPerPlace(reports) {
+  const map = {};
+  reports.forEach((r) => {
+    if (!map[r.place_id] || new Date(r.created_at) > new Date(map[r.place_id].created_at)) {
+      map[r.place_id] = r;
+    }
+  });
+  return map;
+}
 
 export default function HomePage() {
+  const { user } = useAuth();
+  const [places, setPlaces] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('הכל');
+  const [loading, setLoading] = useState(true);
+
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0]
+    || user?.email?.split('@')[0]
+    || 'שם';
+
+  useEffect(() => {
+    async function fetchData() {
+      const [{ data: placesData }, { data: reportsData }] = await Promise.all([
+        supabase.from('places').select('*').order('name'),
+        supabase.from('queue_reports').select('*').order('created_at', { ascending: false }).limit(100),
+      ]);
+      setPlaces(placesData || []);
+      setReports(reportsData || []);
+      setLoading(false);
+    }
+    fetchData();
+
+    const channel = supabase
+      .channel('queue_reports_changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'queue_reports' }, (payload) => {
+        setReports((prev) => [payload.new, ...prev]);
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  const latestReports = getLatestReportPerPlace(reports);
+
+  const filteredPlaces = places.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const englishCategory = categoryMap[activeCategory];
+    const matchesCategory = activeCategory === 'הכל' || p.category === englishCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const activeQueues = filteredPlaces
+    .filter((p) => latestReports[p.id])
+    .map((p) => ({
+      id: p.id,
+      place: p.name,
+      category: p.category,
+      level: latestReports[p.id].level,
+      waitTime: levelToWait[latestReports[p.id].level],
+    }));
+
   return (
     <div className="page home-page">
       <Header />
 
       <div className="home-greeting">
-        <h1 className="home-greeting-title">Good morning, Lihi 👋</h1>
-        <p className="home-greeting-sub">Check wait times near you</p>
+        <h1 className="home-greeting-title">שלום, {firstName} 👋</h1>
+        <p className="home-greeting-sub">בדוק זמני המתנה ליד הבית</p>
       </div>
 
       <div className="home-search">
-        <SearchBar placeholder="Search places and services..." />
+        <SearchBar placeholder="חפש מקומות ושירותים..." value={search} onChange={setSearch} />
       </div>
 
       <div className="home-categories">
         {categories.map((cat) => (
-          <button key={cat} className={`category-chip ${cat === 'All' ? 'category-chip--active' : ''}`}>
+          <button
+            key={cat}
+            className={`category-chip ${activeCategory === cat ? 'category-chip--active' : ''}`}
+            onClick={() => setActiveCategory(cat)}
+          >
             {cat}
           </button>
         ))}
       </div>
 
-      <section className="home-section">
-        <h2 className="home-section-title">Active Queues</h2>
-        <div className="queue-list">
-          {activeQueues.map((q) => (
-            <QueueCard key={q.id} {...q} />
-          ))}
-        </div>
-      </section>
+      {loading ? (
+        <p className="home-loading">טוען...</p>
+      ) : (
+        <>
+          {activeQueues.length > 0 && (
+            <section className="home-section">
+              <h2 className="home-section-title">
+                תורים פעילים
+                <span className="realtime-dot" title="עדכון חי" />
+              </h2>
+              <div className="queue-list">
+                {activeQueues.map((q) => (
+                  <QueueCard key={q.id} {...q} />
+                ))}
+              </div>
+            </section>
+          )}
 
-      <section className="home-section">
-        <h2 className="home-section-title">Nearby Places</h2>
-        <div className="places-scroll">
-          {nearbyPlaces.map((p) => (
-            <PlaceCard key={p.id} {...p} />
-          ))}
-        </div>
-      </section>
+          <section className="home-section">
+            <h2 className="home-section-title">מקומות בקרבתך</h2>
+            {filteredPlaces.length === 0 ? (
+              <p className="home-empty">לא נמצאו מקומות.</p>
+            ) : (
+              <div className="places-scroll">
+                {filteredPlaces.map((p) => (
+                  <PlaceCard key={p.id} name={p.name} category={p.category} rating={p.rating} emoji={p.emoji} />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
       <div className="page-bottom-spacer" />
       <BottomNav />

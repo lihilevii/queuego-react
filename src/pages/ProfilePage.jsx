@@ -1,45 +1,72 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header/Header';
-import PlaceCard from '../components/PlaceCard/PlaceCard';
 import BottomNav from '../components/BottomNav/BottomNav';
 import './ProfilePage.css';
 
-const stats = [
-  { label: 'Reports', value: '24' },
-  { label: 'Favorites', value: '8' },
-  { label: 'Saved Time', value: '3h' },
-];
-
-const favorites = [
-  { id: 1, name: 'City Hall',     category: 'Government', rating: '4.2', emoji: '🏛️' },
-  { id: 2, name: 'Health Clinic', category: 'Health',     rating: '4.5', emoji: '🏥' },
-  { id: 3, name: 'Post Office',   category: 'Post Office',rating: '3.8', emoji: '📮' },
-];
-
-const updates = [
-  { id: 1, text: 'City Hall wait dropped to 5 min',      time: '2 min ago'  },
-  { id: 2, text: 'Health Clinic is now fully open',       time: '15 min ago' },
-  { id: 3, text: 'Post Office: moderate wait reported',   time: '1 hour ago' },
-];
+const levelColors = { low: 'var(--color-success)', medium: '#b45309', high: 'var(--color-error)' };
+const levelLabels = { low: 'נמוך', medium: 'בינוני', high: 'גבוה' };
 
 export default function ProfilePage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState({ reports: 0, favorites: 0 });
+  const [recentReports, setRecentReports] = useState([]);
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'משתמש';
+  const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+
+  useEffect(() => {
+    async function fetchStats() {
+      const [{ count: reportCount }, { count: favCount }, { data: reportsData }] = await Promise.all([
+        supabase.from('queue_reports').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('favorites').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase
+          .from('queue_reports')
+          .select('id, level, created_at, places(name)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ]);
+      setStats({ reports: reportCount || 0, favorites: favCount || 0 });
+      setRecentReports(reportsData || []);
+    }
+    fetchStats();
+  }, [user.id]);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    navigate('/login');
+  }
+
+  function timeAgo(dateStr) {
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 60000);
+    if (diff < 1) return 'עכשיו';
+    if (diff < 60) return `לפני ${diff} דק'`;
+    if (diff < 1440) return `לפני ${Math.floor(diff / 60)} שעות`;
+    return `לפני ${Math.floor(diff / 1440)} ימים`;
+  }
 
   return (
     <div className="page profile-page">
-      <Header title="Profile" />
+      <Header title="פרופיל" />
 
       <div className="profile-content">
         <div className="profile-hero">
-          <div className="profile-avatar">LH</div>
+          <div className="profile-avatar">{initials}</div>
           <div>
-            <p className="profile-name">Lihi Hadad</p>
-            <p className="profile-email">lihi@example.com</p>
+            <p className="profile-name">{displayName}</p>
+            <p className="profile-email">{user?.email}</p>
           </div>
         </div>
 
         <div className="profile-stats">
-          {stats.map((s) => (
+          {[
+            { label: 'דיווחים', value: stats.reports },
+            { label: 'מועדפים', value: stats.favorites },
+          ].map((s) => (
             <div key={s.label} className="stat-card">
               <span className="stat-value">{s.value}</span>
               <span className="stat-label">{s.label}</span>
@@ -47,30 +74,28 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        <section className="profile-section">
-          <h2 className="profile-section-title">Favorite Places</h2>
-          <div className="profile-places-scroll">
-            {favorites.map((p) => (
-              <PlaceCard key={p.id} {...p} />
-            ))}
-          </div>
-        </section>
-
-        <section className="profile-section">
-          <h2 className="profile-section-title">Recent Updates</h2>
-          {updates.map((u) => (
-            <div key={u.id} className="update-item">
-              <div className="update-dot" />
-              <div>
-                <p className="update-text">{u.text}</p>
-                <p className="update-time">{u.time}</p>
+        {recentReports.length > 0 && (
+          <section className="profile-section">
+            <h2 className="profile-section-title">הדיווחים שלי</h2>
+            {recentReports.map((r) => (
+              <div key={r.id} className="update-item">
+                <div className="update-dot" style={{ background: levelColors[r.level] }} />
+                <div>
+                  <p className="update-text">
+                    {r.places?.name} -{' '}
+                    <span style={{ color: levelColors[r.level], fontWeight: 600 }}>
+                      {levelLabels[r.level]}
+                    </span>
+                  </p>
+                  <p className="update-time">{timeAgo(r.created_at)}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </section>
+            ))}
+          </section>
+        )}
 
-        <button className="logout-btn" onClick={() => navigate('/login')}>
-          Log Out
+        <button className="logout-btn" onClick={handleLogout}>
+          התנתקות
         </button>
       </div>
 

@@ -1,9 +1,9 @@
 import './StatusOptionCard.css';
 
 const config = {
-  low:    { emoji: '🟢', label: 'Low',    desc: 'Short wait' },
-  medium: { emoji: '🟡', label: 'Medium', desc: 'Moderate wait' },
-  high:   { emoji: '🔴', label: 'High',   desc: 'Long wait' },
+  low:    { emoji: '🟢', label: 'נמוך',   desc: 'המתנה קצרה' },
+  medium: { emoji: '🟡', label: 'בינוני', desc: 'המתנה סבירה' },
+  high:   { emoji: '🔴', label: 'גבוה',   desc: 'המתנה ארוכה' },
 };
 
 export default function StatusOptionCard({ level, selected, onClick }) {

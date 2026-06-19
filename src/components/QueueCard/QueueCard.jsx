@@ -1,9 +1,9 @@
 import './QueueCard.css';
 
 const levelConfig = {
-  low:    { label: 'Low',    color: 'success' },
-  medium: { label: 'Medium', color: 'accent'  },
-  high:   { label: 'High',   color: 'error'   },
+  low:    { label: 'נמוך',   color: 'success' },
+  medium: { label: 'בינוני', color: 'accent'  },
+  high:   { label: 'גבוה',   color: 'error'   },
 };
 
 export default function QueueCard({ place, waitTime, level, category }) {
@@ -20,7 +20,7 @@ export default function QueueCard({ place, waitTime, level, category }) {
       </div>
       <div className="queue-card-right">
         <span className={`queue-card-badge queue-card-badge--${cfg.color}`}>{cfg.label}</span>
-        <p className="queue-card-wait">{waitTime} min</p>
+        <p className="queue-card-wait">{waitTime} דק'</p>
       </div>
     </div>
   );
