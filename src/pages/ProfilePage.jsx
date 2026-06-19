@@ -15,7 +15,9 @@ export default function ProfilePage() {
   const [stats, setStats] = useState({ reports: 0, favorites: 0 });
   const [recentReports, setRecentReports] = useState([]);
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'משתמש';
+  const rawName = user?.user_metadata?.full_name
+    || user?.email?.split('@')[0]?.replace(/[0-9]+$/, '') || 'משתמש';
+  const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
   const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
   useEffect(() => {
