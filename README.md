@@ -1,30 +1,30 @@
 # QueueGo
 
-A mobile-first React app that lets users report and check real-time queue wait times at public places like government offices, clinics, and post offices.
+אפליקציית React לדיווח ובדיקת זמני המתנה בתורים במקומות ציבוריים - משרדי ממשלה, מרפאות, דואר ועוד.
 
 **Live Demo:** [queuego-react-app.vercel.app](https://queuego-react-app.vercel.app)  
-**GitHub:** [GitHub URL here]
+**GitHub:** [github.com/lihilevii/queuego-react-app](https://github.com/lihilevii/queuego-react-app)
 
 ---
 
-## The Problem
+## הבעיה
 
-People waste time showing up to government offices, clinics, and post offices without knowing how crowded it is. QueueGo solves this with crowd-sourced, real-time queue reports - submitted by users, visible to everyone.
+אנשים מגיעים למשרדי ממשלה, מרפאות ודואר בלי לדעת כמה עמוס שם. QueueGo פותרת את זה עם דיווחים בזמן אמת - משתמשים מדווחים, כולם נהנים.
 
-## Who It's For
+## קהל יעד
 
-- **Citizens** visiting public services who want to plan their visit
-- **Frequent visitors** who want alerts when their favorite places get busy
+- **אזרחים** שרוצים לתכנן את הביקור לפני שיוצאים מהבית
+- **מבקרים קבועים** שרוצים לדעת מתי המקום שלהם פחות עמוס
 
 ---
 
-## Features
+## פיצ'רים
 
-- **Home** - Browse and search nearby places, see live queue statuses
-- **Report** - Submit a queue crowding level (Low / Medium / High) with optional notes
-- **Favorites** - Save places and toggle favorites with a heart button
-- **Profile** - View your report history and account stats
-- **Auth** - Email/password signup + Google OAuth via Supabase
+- **בית** - חיפוש וסינון מקומות, זמני המתנה חיים עם עדכון realtime
+- **דיווח** - שליחת רמת עומס (נמוך / בינוני / גבוה) עם הערות
+- **מועדפים** - שמירת מקומות עם לחצן לב
+- **פרופיל** - היסטוריית דיווחים וסטטיסטיקות
+- **אימות** - הרשמה/כניסה עם אימייל + Google OAuth
 
 ---
 
@@ -42,45 +42,47 @@ People waste time showing up to government offices, clinics, and post offices wi
 
 ---
 
-## External Services
+## שירותים חיצוניים
 
-| Service | Purpose | How it's used |
+| שירות | מטרה | שימוש באפליקציה |
 |---|---|---|
-| Supabase Auth | Authentication | Email/password + Google OAuth login |
-| Supabase Realtime | Live updates | Queue reports update instantly for all users without page refresh |
-| EmailJS | Email notifications | Sends a confirmation email to the user after submitting a report |
+| Supabase Auth | אימות משתמשים | הרשמה/כניסה עם אימייל וסיסמה + Google OAuth |
+| Supabase Realtime | עדכונים חיים | כשמשתמש מדווח על תור, כל המשתמשים רואים את זה מיד בלי רענון |
+| EmailJS | התראות מייל | שליחת מייל אישור מעוצב למשתמש אחרי כל דיווח |
 
 ---
 
-## Database Schema (ERD)
+## מסד הנתונים (ERD)
 
-Three tables in Supabase:
+שלוש טבלאות ב-Supabase:
 
-**`places`** - Public service locations  
-**`queue_reports`** - User-submitted crowding reports (FK to places + auth.users)  
-**`favorites`** - User-saved places (FK to places + auth.users, unique per pair)
+**`places`** - מקומות שירות ציבוריים  
+**`queue_reports`** - דיווחי עומס שהוגשו על ידי משתמשים (FK ל-places ול-auth.users)  
+**`favorites`** - מקומות שמורים של משתמשים (FK ל-places ול-auth.users, unique per pair)
 
-> See `/supabase/schema.sql` for the full SQL including RLS policies and seed data.
+קשרים:
+- `queue_reports.place_id` → `places.id`
+- `queue_reports.user_id` → `auth.users.id`
+- `favorites.place_id` → `places.id`
+- `favorites.user_id` → `auth.users.id`
+
+> ראה `/supabase/schema.sql` לכל ה-SQL כולל RLS policies ו-seed data.
 
 ---
 
-## Running Locally
+## הרצה מקומית
 
-### 1. Clone and install
+### 1. Clone והתקנה
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/lihilevii/queuego-react-app.git
 cd queuego-react-app
 npm install
 ```
 
-### 2. Set up environment variables
+### 2. משתני סביבה
 
-Copy `.env.example` to `.env.local` and fill in your keys:
-
-```bash
-cp .env.example .env.local
-```
+צור קובץ `.env.local` בתיקיית הפרויקט:
 
 ```
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -91,21 +93,20 @@ VITE_EMAILJS_TEMPLATE_ID=your-template-id
 VITE_EMAILJS_PUBLIC_KEY=your-public-key
 ```
 
-### 3. Set up Supabase
+### 3. הגדרת Supabase
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** and run the contents of `supabase/schema.sql`
-3. In **Authentication > Providers**, enable Google OAuth
-4. In **Database > Replication**, add `queue_reports` to the publication for Realtime
+1. צור project ב-[supabase.com](https://supabase.com)
+2. SQL Editor - הרץ את `/supabase/schema.sql`
+3. Authentication → Providers - הפעל Google OAuth
+4. Realtime - הרץ: `alter publication supabase_realtime add table queue_reports;`
 
-### 4. Set up EmailJS
+### 4. הגדרת EmailJS
 
-1. Create an account at [emailjs.com](https://emailjs.com)
-2. Add an Email Service and create a Template with these variables:
-   - `{{to_email}}`, `{{to_name}}`, `{{place_name}}`, `{{queue_level}}`, `{{notes}}`
-3. Copy your Service ID, Template ID, and Public Key to `.env.local`
+1. צור חשבון ב-[emailjs.com](https://emailjs.com)
+2. הוסף Email Service וצור Template עם המשתנים: `{{to_email}}`, `{{to_name}}`, `{{place_name}}`, `{{queue_level}}`, `{{notes}}`
+3. העתק Service ID, Template ID ו-Public Key ל-`.env.local`
 
-### 5. Run
+### 5. הרצה
 
 ```bash
 npm run dev
@@ -113,9 +114,7 @@ npm run dev
 
 ---
 
-## Deployment (Vercel)
+## Deployment
 
-1. Push to GitHub
-2. Import the repo in [vercel.com](https://vercel.com)
-3. Add the environment variables from `.env.local` in the Vercel dashboard
-4. Deploy
+האפליקציה deployed ל-Vercel עם CI/CD אוטומטי מ-GitHub.  
+כל push ל-`main` מפעיל deploy חדש אוטומטית.
