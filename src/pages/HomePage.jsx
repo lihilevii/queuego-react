@@ -130,8 +130,16 @@ export default function HomePage() {
             ) : (
               <div className="places-scroll">
                 {filteredPlaces.map((p) => (
-                  <PlaceCard key={p.id} name={p.name} category={categoryLabel(p.category)} rating={p.rating} emoji={p.emoji} onClick={() => goToReport(p.id)} />
-                ))}
+<PlaceCard
+  key={p.id}
+  name={p.name}
+  category={categoryLabel(p.category)}
+  rating={p.rating}
+  emoji={p.emoji}
+  openingHours={p.opening_hours || 'לא צוינו שעות פתיחה'}
+  loadLevel={latestReports[p.id]?.level || 'unknown'}
+  onClick={() => goToReport(p.id)}
+/>                ))}
               </div>
             )}
           </section>
