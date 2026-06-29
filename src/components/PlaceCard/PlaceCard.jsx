@@ -1,6 +1,14 @@
 import './PlaceCard.css';
 
-export default function PlaceCard({ name, category, rating, emoji, onClick }) {
+export default function PlaceCard({
+  name,
+  category,
+  rating,
+  emoji,
+  openingHours,
+  loadLevel,
+  onClick,
+})  {
   return (
     <button type="button" className="place-card" onClick={onClick} aria-label={`דווח על ${name}`}>
       <div className="place-card-image">{emoji || '📍'}</div>
