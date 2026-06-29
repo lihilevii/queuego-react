@@ -6,18 +6,8 @@ import QueueCard from '../components/QueueCard/QueueCard';
 import PlaceCard from '../components/PlaceCard/PlaceCard';
 import BottomNav from '../components/BottomNav/BottomNav';
 import { useAuth } from '../context/AuthContext';
+import { categories, categoryMap, categoryLabel } from '../lib/categories';
 import './HomePage.css';
-
-const categories = ['הכל', 'ממשלתי', 'בריאות', 'דואר', 'רישוי', 'בנקים'];
-
-const categoryMap = {
-  'הכל': 'All',
-  'ממשלתי': 'Government',
-  'בריאות': 'Health',
-  'דואר': 'Post Office',
-  'רישוי': 'DMV',
-  'בנקים': 'Banks',
-};
 
 const levelToWait = { low: 10, medium: 25, high: 45 };
 
@@ -79,7 +69,7 @@ export default function HomePage() {
     .map((p) => ({
       id: p.id,
       place: p.name,
-      category: p.category,
+      category: categoryLabel(p.category),
       level: latestReports[p.id].level,
       waitTime: levelToWait[latestReports[p.id].level],
     }));
@@ -134,7 +124,7 @@ export default function HomePage() {
             ) : (
               <div className="places-scroll">
                 {filteredPlaces.map((p) => (
-                  <PlaceCard key={p.id} name={p.name} category={p.category} rating={p.rating} emoji={p.emoji} />
+                  <PlaceCard key={p.id} name={p.name} category={categoryLabel(p.category)} rating={p.rating} emoji={p.emoji} />
                 ))}
               </div>
             )}

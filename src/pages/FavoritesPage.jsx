@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { categoryLabel } from '../lib/categories';
 import Header from '../components/Header/Header';
 import BottomNav from '../components/BottomNav/BottomNav';
 import './FavoritesPage.css';
@@ -65,7 +66,7 @@ export default function FavoritesPage() {
                   <div className="fav-card-emoji">{p.emoji || '📍'}</div>
                   <div className="fav-card-body">
                     <p className="fav-card-name">{p.name}</p>
-                    <p className="fav-card-category">{p.category}</p>
+                    <p className="fav-card-category">{categoryLabel(p.category)}</p>
                   </div>
                   <button className="fav-toggle fav-toggle--active" onClick={() => toggleFavorite(p)}>
                     ♥
@@ -83,7 +84,7 @@ export default function FavoritesPage() {
               <div className="fav-card-emoji">{p.emoji || '📍'}</div>
               <div className="fav-card-body">
                 <p className="fav-card-name">{p.name}</p>
-                <p className="fav-card-category">{p.category}</p>
+                <p className="fav-card-category">{categoryLabel(p.category)}</p>
               </div>
               <button
                 className={`fav-toggle ${favoritePlaceIds.has(p.id) ? 'fav-toggle--active' : ''}`}
