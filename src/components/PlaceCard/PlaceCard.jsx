@@ -8,21 +8,29 @@ export default function PlaceCard({
   openingHours,
   loadLevel,
   onClick,
-})  {
+}) {
   return (
-    <button type="button" className="place-card" onClick={onClick} aria-label={`דווח על ${name}`}>
+    <button
+      type="button"
+      className="place-card"
+      onClick={onClick}
+      aria-label={`דווח על ${name}`}
+    >
       <div className="place-card-image">{emoji || '📍'}</div>
+
       <div className="place-card-body">
         <p className="place-card-name">{name}</p>
-        <p className="place-card-category">{category}</p>
-        <p className="place-card-hours">
-  🕒 <p className="place-card-hours">
-  🕒 {openingHours}
-</p>
 
-<p className="place-card-load">
-  🔥 עומס: {loadLevel}
-</p>
+        <p className="place-card-category">{category}</p>
+
+        <p className="place-card-hours">
+          🕒 {openingHours}
+        </p>
+
+        <p className="place-card-load">
+          🔥 עומס: {loadLevel}
+        </p>
+
         <div className="place-card-rating">
           <span className="place-card-star">★</span>
           <span>{rating}</span>
