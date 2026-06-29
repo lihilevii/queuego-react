@@ -37,7 +37,7 @@
 - **דיווח** - שליחת רמת עומס (נמוך / בינוני / גבוה) עם הערות + מייל אישור אוטומטי
 - **מועדפים** - שמירת מקומות עם לחצן לב
 - **פרופיל** - היסטוריית דיווחים וסטטיסטיקות
-- **אימות** - הרשמה/כניסה עם אימייל + Google OAuth
+- **אימות** - הרשמה/כניסה עם אימייל וסיסמה (התחברות עם Google בקרוב - התשתית מוכנה בקוד)
 
 ---
 
@@ -48,7 +48,7 @@
 | Frontend | React 19 + Vite |
 | Routing | React Router v7 |
 | Database | Supabase (PostgreSQL) |
-| Auth | Supabase Auth (Email + Google OAuth) |
+| Auth | Supabase Auth (Email + Password; Google OAuth בתכנון) |
 | Real-time | Supabase Realtime (WebSockets) |
 | Email | EmailJS |
 | Deployment | Vercel |
@@ -59,7 +59,7 @@
 
 | שירות | סוג | מה הוא מספק לפרויקט |
 |---|---|---|
-| Supabase Auth | אותנטיקציה | הרשמה/כניסה עם אימייל וסיסמה + Google OAuth; ניהול sessions |
+| Supabase Auth | אותנטיקציה | הרשמה/כניסה עם אימייל וסיסמה (תשתית Google OAuth מוכנה בקוד, תופעל בהמשך); ניהול sessions |
 | Supabase Realtime | API (WebSockets) | כשמשתמש מדווח על תור, כל המשתמשים רואים את זה מיד ללא רענון דף |
 | EmailJS | API | שליחת מייל אישור מעוצב ב-RTL למשתמש אחרי כל דיווח, ישירות מהדפדפן |
 
@@ -75,8 +75,8 @@ erDiagram
         uuid id PK
         text name
         text category
-        text address
-        text city
+        text emoji
+        numeric rating
         timestamptz created_at
     }
 
@@ -137,7 +137,7 @@ VITE_EMAILJS_PUBLIC_KEY=your-public-key
 
 1. צור project ב-[supabase.com](https://supabase.com)
 2. SQL Editor - הרץ את `/supabase/schema.sql`
-3. Authentication → Providers - הפעל Google OAuth
+3. Authentication → Providers - (אופציונלי) הפעל Google OAuth לכניסה עם Google
 4. Realtime - הרץ: `alter publication supabase_realtime add table queue_reports;`
 
 ### 4. הגדרת EmailJS
