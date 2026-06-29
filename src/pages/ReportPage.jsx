@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -14,8 +15,9 @@ const levelLabels = { low: 'נמוך', medium: 'בינוני', high: 'גבוה' 
 
 export default function ReportPage() {
   const { user } = useAuth();
+  const location = useLocation();
   const [places, setPlaces] = useState([]);
-  const [place, setPlace] = useState('');
+  const [place, setPlace] = useState(location.state?.placeId || '');
   const [level, setLevel] = useState('');
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);

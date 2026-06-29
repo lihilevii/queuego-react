@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header/Header';
 import SearchBar from '../components/SearchBar/SearchBar';
@@ -23,6 +24,7 @@ function getLatestReportPerPlace(reports) {
 
 export default function HomePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [places, setPlaces] = useState([]);
   const [reports, setReports] = useState([]);
   const [search, setSearch] = useState('');
@@ -54,6 +56,10 @@ export default function HomePage() {
 
     return () => supabase.removeChannel(channel);
   }, []);
+
+  function goToReport(placeId) {
+    navigate('/report', { state: { placeId } });
+  }
 
   const latestReports = getLatestReportPerPlace(reports);
 
@@ -111,7 +117,7 @@ export default function HomePage() {
               </h2>
               <div className="queue-list">
                 {activeQueues.map((q) => (
-                  <QueueCard key={q.id} {...q} />
+                  <QueueCard key={q.id} {...q} onClick={() => goToReport(q.id)} />
                 ))}
               </div>
             </section>
@@ -124,7 +130,7 @@ export default function HomePage() {
             ) : (
               <div className="places-scroll">
                 {filteredPlaces.map((p) => (
-                  <PlaceCard key={p.id} name={p.name} category={categoryLabel(p.category)} rating={p.rating} emoji={p.emoji} />
+                  <PlaceCard key={p.id} name={p.name} category={categoryLabel(p.category)} rating={p.rating} emoji={p.emoji} onClick={() => goToReport(p.id)} />
                 ))}
               </div>
             )}

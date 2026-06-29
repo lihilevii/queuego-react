@@ -6,11 +6,11 @@ const levelConfig = {
   high:   { label: 'גבוה',   color: 'error'   },
 };
 
-export default function QueueCard({ place, waitTime, level, category }) {
+export default function QueueCard({ place, waitTime, level, category, onClick }) {
   const cfg = levelConfig[level] || levelConfig.medium;
 
   return (
-    <div className="queue-card">
+    <button type="button" className="queue-card" onClick={onClick} aria-label={`דווח על ${place}`}>
       <div className="queue-card-left">
         <div className="queue-card-avatar">{place[0]}</div>
         <div>
@@ -22,6 +22,6 @@ export default function QueueCard({ place, waitTime, level, category }) {
         <span className={`queue-card-badge queue-card-badge--${cfg.color}`}>{cfg.label}</span>
         <p className="queue-card-wait">{waitTime} דק'</p>
       </div>
-    </div>
+    </button>
   );
 }
