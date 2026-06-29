@@ -137,8 +137,7 @@ export default function HomePage() {
   rating={p.rating}
   emoji={p.emoji}
   openingHours={p.opening_hours || 'לא צוינו שעות פתיחה'}
-  loadLevel={latestReports[p.id]?.level || 'unknown'}
-  onClick={() => goToReport(p.id)}
+loadLevel={p.load_level || 'לא ידוע'}  onClick={() => goToReport(p.id)}
 />                ))}
               </div>
             )}
