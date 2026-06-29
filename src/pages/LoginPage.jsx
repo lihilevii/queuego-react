@@ -5,6 +5,9 @@ import PrimaryButton from '../components/PrimaryButton/PrimaryButton';
 import SocialLoginButton from '../components/SocialLoginButton/SocialLoginButton';
 import './LoginPage.css';
 
+// כשנחבר את Google ב-Supabase (Authentication > Providers), נשנה ל-true והכפתור יעבוד מיד
+const GOOGLE_ENABLED = false;
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,6 +39,11 @@ export default function LoginPage() {
   }
 
   async function handleGoogleLogin() {
+    setError('');
+    if (!GOOGLE_ENABLED) {
+      setSuccessMsg('התחברות עם Google תהיה זמינה בקרוב - בינתיים אפשר להתחבר עם מייל וסיסמה');
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin },
